@@ -1,0 +1,58 @@
+= encryption_accessor
+
+This is a gem for allowing encryption of data (using AES256) from the Ruby side, with a dead simple API and accessor methods.
+
+== Usage
+
+Let's say you have a model User and your data is stored as plain text. To encrypt that data you have to do the following:
+
+  class User < ActiveRecord::Base
+    ..
+    encryption_accessor :first_name, :last_name, :password
+    ..
+  end
+
+By adding this declaration, now the User model has created a couple of new methods for you (and also modified the existing standard accessors) for each field, such us: first_name_encrypt!, first_name_decrypt!, first_name_encrypred .. and the same for last_name and password.
+
+Then, you can encrypt your fields of records already stored on the database, as the following example suggests:
+
+  > u = User.find(1)
+  > u.first_name_encrypt!
+  > u.last_name_encrypt!
+  > u.password_encrypt!
+  > u.save(false)
+
+Your data is now encrypted!
+
+For new data, it's even simpler, as the old accessors has been redefined, look at this:
+
+  > u = User.create(:first_name => 'Marcelo', :last_name => 'Giorgi')
+
+That's it! The data is stored encrypted. You can test it:
+
+  > u.first_name
+  => 'Marcelo'
+  > u.first_name_encrypted
+  => "57626921e35fa400b2ab3227abbfb98a"
+
+Also it's important to notice that I didn't overwrite any finder methods. So if you want to query for an encrypted value you should do the following:
+
+  > u = User.find_by_first_name_and_last_name(AESCrypt.encrypt('Marcelo'), AESCrypt.encrypt('Giorgi'))
+  => #<User id: 1, first_name: "57626921e35fa400b2ab3227abbfb98a", last_name: "bc0059af127f097175f3aa5795841922", .. password: ...>
+
+That's all I have to say. Let me know if it helps :)
+
+== TODO
+
+* Add specs !!
+* Add more flexibility for another algorithms.
+
+== License
+
+Copyright (c) 2010 Marcelo Giorgi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
